@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  password        String?
+  name            String?
+  role            String    @default("STUDENT") // STUDENT, COMMITTEE, ADMIN
+  hostel          String?
+  phone           String?
+  profileImage    String?
+  createdAt       DateTime  @default(now())
+  
+  // Relations
+  tickets             Ticket[]           @relation("TicketAuthor")
+  assignedTickets     Ticket[]           @relation("TicketAssignee")
+  comments            Comment[]
+  assignmentsReceived TicketAssignment[] @relation("AssignmentReceiver")
+  assignmentsGiven    TicketAssignment[] @relation("AssignmentGiver")
+  escalationsCreated  TicketEscalation[]
+  notifications       Notification[]
+  votes               TicketVote[]
+}
+
+model Ticket {
+  id             String       @id @default(cuid())
+  
+  // Custom unique human-readable ID (e.g., INF-2026-001)
+  ticketNumber   String       @unique 
+  title          String
+  description    String
+  status         String       @default("OPEN") // OPEN, ASSIGNED, IN_PROGRESS, ESCALATED, RESOLVED, CLOSED
+  priority       String       @default("MEDIUM") // LOW, MEDIUM, HIGH
+  category       String       // WIFI, PLUMBING, ELECTRICAL, HOT_WATER, HVAC, OTHER
+  location       String       // e.g., "Dorm A, Room 101"
+  
+  // Timestamps for SLA & Analytics determining resolution times
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  resolvedAt     DateTime?
+  responseDeadline DateTime?
+  slaDeadline    DateTime?
+  
+  // Visibility Control
+  isPublic       Boolean      @default(false)
+  isAnonymous    Boolean      @default(false)
+  
+  // User Relations
+  authorId       String
+  author         User         @relation("TicketAuthor", fields: [authorId], references: [id])
+  assigneeId     String?
+  assignee       User?        @relation("TicketAssignee", fields: [assigneeId], references: [id])
+  comments       Comment[]
+  images         IssueImage[]
+  assignments    TicketAssignment[]
+  escalations    TicketEscalation[]
+  notifications  Notification[]
+  votes          TicketVote[]
+}
+
+model IssueImage {
+  id             String    @id @default(cuid())
+  url            String
+  uploadedAt     DateTime  @default(now())
+  
+  ticketId       String
+  ticket         Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+}
+
+model Comment {
+  id             String    @id @default(cuid())
+  content        String
+  imageUrl       String?
+  
+  // Privacy Control: If true, only visible to COMMITTEE
+  isInternalOnly Boolean   @default(false) 
+  createdAt      DateTime  @default(now())
+  
+  // Relations
+  ticketId       String
+  ticket         Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User      @relation(fields: [authorId], references: [id])
+}
+
+model TicketAssignment {
+  id             String    @id @default(cuid())
+  assignedAt     DateTime  @default(now())
+
+  ticketId       String
+  ticket         Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  assignedToId   String
+  assignedTo     User      @relation("AssignmentReceiver", fields: [assignedToId], references: [id])
+  
+  assignedById   String
+  assignedBy     User      @relation("AssignmentGiver", fields: [assignedById], references: [id])
+}
+
+model TicketEscalation {
+  id             String    @id @default(cuid())
+  reason         String
+  escalatedAt    DateTime  @default(now())
+  
+  ticketId       String
+  ticket         Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  escalatedById  String
+  escalatedBy    User      @relation(fields: [escalatedById], references: [id])
+}
+
+model Notification {
+  id             String    @id @default(cuid())
+  message        String
+  isRead         Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  ticketId       String?
+  ticket         Ticket?   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+}
+
+model TicketVote {
+  id             String    @id @default(cuid())
+  createdAt      DateTime  @default(now())
+  
+  ticketId       String
+  ticket         Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketId, userId]) // Prevent multiple votes from same user on same ticket
+}

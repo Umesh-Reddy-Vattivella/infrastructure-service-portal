@@ -1,0 +1,42 @@
+# Centralized Infrastructure Service Portal - Advanced Features Walkthrough
+
+Welcome to the newest upgrades to the InstiSolve Infrastructure Portal! Based on your product specification, we have introduced deep automation, analytics, and transparency modules.
+
+## 1. Comment Attachments & Drag-and-Drop
+The internal messaging system on each [Ticket](file:///c:/Users/UMESH_VATTIVELLA/Project_1/src/actions/ticket.ts#86-104) was upgraded to support attachments. 
+- Students and Committee members can now drag and drop images directly into the comment reply box.
+- Images are securely uploaded and linked to the comment threaded view.
+
+## 2. Smart Ticket Assignment & Escalation Workflow
+Committee Dashboard now features total lifecycle visibility.
+- **Assignments**: Tickets can be directly assigned to specific admins or committee members. Assignees automatically receive a notification.
+- **Lifecycle Visualization**: The [Ticket](file:///c:/Users/UMESH_VATTIVELLA/Project_1/src/actions/ticket.ts#86-104) detail page renders an automated **Progress Tracking Bar** (Open ➝ Assigned ➝ In Progress ➝ Escalated ➝ Resolved).
+- **Service Level Agreements (SLAs)**: Each severity level operates on a timer (High: 24h, Medium: 48h, Low: 72h). If the deadline breaches, the progress bar indicates an **Overdue** state.
+- **Escalation**: Committee members can intentionally escalate high-priority tickets with specific reasons.
+
+## 3. Transparency & View Configurations
+- **Anonymous Reporting**: Students can report issues without revealing their identity directly from the [StudentDashboard.tsx](file:///c:/Users/UMESH_VATTIVELLA/Project_1/src/components/StudentDashboard.tsx) portal via a sleek toggle. The backend completely masks name and email fields on the returned ticket ensuring student safety.
+- **Public Feed & Upvoting**: The `/issues` page now has an interactive layout similar to modern feedback portals (e.g. Canny). Students can view all public issues across campus, filter dynamically, and **Upvote** issues affecting them directly to push priority organically.
+
+## 4. Polling Notifications System
+No more refreshing! 
+- A stylish **Notification Bell** was added to the main Global Navbar.
+- It proactively polls for updates. When a student's ticket changes status, receives a comment, or gets escalated, the bell alerts them immediately to dive straight to the relevant ticket.
+
+## 5. Committee Insights & Analytics
+Data drives decisions. The new `/insights` URL takes Committee/Admins to an executive dashboard powered by **Recharts**.
+- Calculates resolution velocities, open volumes, and escalation rates.
+- Renders **Live Pie Charts** (by Department) and **Bar Charts** (by Status Pipeline).
+- One-click **Export to CSV** for easy reporting to institutional boards.
+
+## Verification Checklist
+- Run `npx prisma db push` to load the new `TicketAssignment`, `TicketEscalation`, [Notification](file:///c:/Users/UMESH_VATTIVELLA/Project_1/src/components/NotificationBell.tsx#6-129), and `TicketVote` models.
+- Run `npm run dev` and sign in as student to test Anonymous submissions.
+- Sign in as Admin to assign, view insights, and manage ticket lifecycle.
+
+## Automated UI Test Recording
+I ran a fully automated browser test acting as both a Student and an Admin to verify the end-to-end functionality of all the features implemented during Phase 3. 
+
+![Automated Feature Test Recording](C:/Users/UMESH_VATTIVELLA/.gemini/antigravity/brain/b53c90c8-c528-48ab-bce8-baa704a8e89d/portal_testing_flow_1772837662736.webp)
+
+Enjoy the fully-featured InstiSolve platform!
