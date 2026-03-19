@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { promises as fs } from "fs";
-import path from "path";
+import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
 
 // Custom unique human-readable ID (e.g., INF-2026-001)
@@ -80,26 +80,31 @@ export async function createTicket(formData: FormData) {
     const uploadedImages: { url: string }[] = [];
 
     if (files.length > 0) {
-        const uploadDir = path.join(process.cwd(), "public/uploads");
-        // Ensure directory exists
-        try {
-            await fs.access(uploadDir);
-        } catch {
-            await fs.mkdir(uploadDir, { recursive: true });
-        }
-
         for (const file of files) {
             if (file.size > 0 && file.name) {
                 const uniqueId = crypto.randomBytes(8).toString("hex");
                 const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
                 const fileName = `${uniqueId}-${safeFileName}`;
-                const filePath = path.join(uploadDir, fileName);
 
                 const arrayBuffer = await file.arrayBuffer();
                 const buffer = Buffer.from(arrayBuffer);
-                await fs.writeFile(filePath, buffer);
 
-                uploadedImages.push({ url: `/uploads/${fileName}` });
+                const { data, error } = await supabase.storage
+                    .from('images')
+                    .upload(fileName, buffer, {
+                        contentType: file.type || 'image/jpeg',
+                    });
+
+                if (error) {
+                    console.error("Supabase upload error:", error);
+                    continue;
+                }
+
+                const { data: publicUrlData } = supabase.storage
+                    .from('images')
+                    .getPublicUrl(fileName);
+
+                uploadedImages.push({ url: publicUrlData.publicUrl });
             }
         }
     }

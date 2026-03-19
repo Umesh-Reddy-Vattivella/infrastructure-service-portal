@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import CreateTicketForm from "@/components/CreateTicketForm";
-import Link from "next/navigation";
+import Link from "next/link";
 
 export default function StudentDashboard({ tickets }: { tickets: any[] }) {
     const [isCreating, setIsCreating] = useState(false);
@@ -72,41 +72,41 @@ export default function StudentDashboard({ tickets }: { tickets: any[] }) {
                     </div>
                 ) : (
                     tickets.filter(t => statusFilter === "ALL" || t.status === statusFilter).map((ticket) => (
-                        <div key={ticket.id} className="glass-panel p-5 rounded-xl hover:bg-slate-800/80 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group cursor-pointer border-l-4 border-l-blue-500">
-                            <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-1">
-                                    <span className="font-mono text-xs text-slate-400 bg-slate-900 px-2 py-0.5 rounded">{ticket.ticketNumber}</span>
-                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider border uppercase ${getStatusColor(ticket.status)}`}>
-                                        {ticket.status}
-                                    </span>
-                                    {ticket.priority === 'HIGH' && (
-                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider border uppercase bg-red-500/10 text-red-500 border-red-500/20">
-                                            URGENT
+                        <Link href={`/ticket/${ticket.id}`} key={ticket.id} className="block">
+                            <div className="glass-panel p-5 rounded-xl hover:bg-slate-800/80 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group cursor-pointer border-l-4 border-l-blue-500">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-1">
+                                        <span className="font-mono text-xs text-slate-400 bg-slate-900 px-2 py-0.5 rounded">{ticket.ticketNumber}</span>
+                                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider border uppercase ${getStatusColor(ticket.status)}`}>
+                                            {ticket.status}
                                         </span>
-                                    )}
+                                        {ticket.priority === 'HIGH' && (
+                                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider border uppercase bg-red-500/10 text-red-500 border-red-500/20">
+                                                URGENT
+                                            </span>
+                                        )}
+                                    </div>
+                                    <h3 className="text-lg font-medium text-white group-hover:text-blue-400 transition-colors">{ticket.title}</h3>
+                                    <p className="text-sm text-slate-400 truncate max-w-2xl mt-1">{ticket.description}</p>
+                                    <div className="flex items-center gap-4 mt-3 text-xs text-slate-500 font-medium">
+                                        <span className="flex items-center gap-1">
+                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                            {ticket.location}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            {mounted ? new Date(ticket.createdAt).toLocaleString() : new Date(ticket.createdAt).toLocaleDateString("en-US")}
+                                        </span>
+                                    </div>
                                 </div>
-                                <h3 className="text-lg font-medium text-white group-hover:text-blue-400 transition-colors">{ticket.title}</h3>
-                                <p className="text-sm text-slate-400 truncate max-w-2xl mt-1">{ticket.description}</p>
-                                <div className="flex items-center gap-4 mt-3 text-xs text-slate-500 font-medium">
-                                    <span className="flex items-center gap-1">
-                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                        {ticket.location}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        {mounted ? new Date(ticket.createdAt).toLocaleString() : new Date(ticket.createdAt).toLocaleDateString("en-US")}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="shrink-0 flex items-center justify-end">
-                                <a href={`/ticket/${ticket.id}`} className="block">
-                                    <span className="text-sm text-blue-400 hover:text-blue-300 font-medium group-hover:underline flex items-center gap-1">
+                                <div className="shrink-0 flex items-center justify-end">
+                                    <span className="text-sm text-blue-400 group-hover:text-blue-300 font-medium group-hover:underline flex items-center gap-1">
                                         View Details
                                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                                     </span>
-                                </a>
+                                </div>
                             </div>
-                        </div>
+                        </Link>
                     ))
                 )}
             </div>

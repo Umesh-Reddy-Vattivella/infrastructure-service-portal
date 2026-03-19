@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 
 import { promises as fs } from "fs";
-import path from "path";
+import { supabase } from "@/lib/supabase";
 import crypto from "crypto";
 
 export async function addComment(formData: FormData) {
@@ -23,23 +23,28 @@ export async function addComment(formData: FormData) {
     let imageUrl = null;
 
     if (image && image.size > 0 && image.name) {
-        const uploadDir = path.join(process.cwd(), "public/uploads");
-        try {
-            await fs.access(uploadDir);
-        } catch {
-            await fs.mkdir(uploadDir, { recursive: true });
-        }
-
         const uniqueId = crypto.randomBytes(8).toString("hex");
         const safeFileName = image.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
         const fileName = `${uniqueId}-comment-${safeFileName}`;
-        const filePath = path.join(uploadDir, fileName);
 
         const arrayBuffer = await image.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-        await fs.writeFile(filePath, buffer);
 
-        imageUrl = `/uploads/${fileName}`;
+        const { data, error } = await supabase.storage
+            .from('images')
+            .upload(fileName, buffer, {
+                contentType: image.type || 'image/jpeg',
+            });
+
+        if (error) {
+            console.error("Supabase upload error:", error);
+        } else {
+            const { data: publicUrlData } = supabase.storage
+                .from('images')
+                .getPublicUrl(fileName);
+
+            imageUrl = publicUrlData.publicUrl;
+        }
     }
 
     const comment = await prisma.comment.create({

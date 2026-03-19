@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 export default function ImageGallery({ images }: { images: { id: string, url: string }[] }) {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     if (!images || images.length === 0) return null;
 
@@ -38,13 +44,13 @@ export default function ImageGallery({ images }: { images: { id: string, url: st
             </div>
 
             {/* Lightbox / Modal */}
-            {selectedImage && (
+            {mounted && selectedImage && createPortal(
                 <div
-                    className="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8 animate-in fade-in duration-200"
+                    className="fixed inset-0 z-[9999] bg-slate-950/95 flex items-center justify-center p-4 animate-in fade-in duration-200"
                     onClick={() => setSelectedImage(null)}
                 >
                     <button
-                        className="absolute top-6 right-6 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 rounded-full p-2 transition-colors"
+                        className="absolute top-6 right-6 text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-700 rounded-full p-2 transition-colors z-[10000]"
                         onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
                     >
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,17 +58,14 @@ export default function ImageGallery({ images }: { images: { id: string, url: st
                         </svg>
                     </button>
 
-                    <div
-                        className="relative max-w-5xl max-h-full aspect-auto rounded-xl overflow-hidden shadow-2xl shadow-black/50"
+                    <img
+                        src={selectedImage}
+                        alt="Enlarged Attachment"
+                        className="max-w-[95vw] max-h-[90vh] object-contain rounded-xl shadow-2xl pointer-events-auto"
                         onClick={(e) => e.stopPropagation()}
-                    >
-                        <img
-                            src={selectedImage}
-                            alt="Enlarged Attachment"
-                            className="w-full h-full object-contain max-h-[85vh]"
-                        />
-                    </div>
-                </div>
+                    />
+                </div>,
+                document.body
             )}
         </div>
     );

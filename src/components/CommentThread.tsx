@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { addComment } from "@/actions/comment";
 
 export default function CommentThread({ ticketId, comments, isCommittee }: { ticketId: string, comments: any[], isCommittee: boolean }) {
@@ -13,6 +14,7 @@ export default function CommentThread({ ticketId, comments, isCommittee }: { tic
 
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -31,16 +33,15 @@ export default function CommentThread({ ticketId, comments, isCommittee }: { tic
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
-        const formData = new FormData(e.currentTarget);
-        if (imageFile) {
-            formData.append("image", imageFile);
-        }
+        const formTarget = e.currentTarget;
+        const formData = new FormData(formTarget);
         try {
             await addComment(formData);
-            (e.target as HTMLFormElement).reset();
+            formTarget.reset();
             removeImage();
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
+            alert("Failed to submit comment. If you attached an image, it might be too large.");
         } finally {
             setLoading(false);
         }
@@ -93,10 +94,13 @@ export default function CommentThread({ ticketId, comments, isCommittee }: { tic
                                         <p className="whitespace-pre-wrap">{comment.content}</p>
 
                                         {comment.imageUrl && (
-                                            <div className="mt-4 max-w-sm rounded-lg overflow-hidden border border-slate-700/50 shadow-lg">
-                                                <a href={comment.imageUrl} target="_blank" rel="noreferrer">
-                                                    <img src={comment.imageUrl} alt="Comment Attachment" className="w-full h-auto max-h-64 object-cover hover:opacity-90 transition-opacity" />
-                                                </a>
+                                            <div className="mt-4 max-w-sm rounded-lg overflow-hidden border border-slate-700/50 shadow-lg cursor-pointer transition-transform hover:scale-[1.02]">
+                                                <img 
+                                                    src={comment.imageUrl} 
+                                                    alt="Comment Attachment" 
+                                                    className="w-full h-auto max-h-64 object-cover" 
+                                                    onClick={() => setSelectedImage(comment.imageUrl)}
+                                                />
                                             </div>
                                         )}
                                     </div>
@@ -157,6 +161,7 @@ export default function CommentThread({ ticketId, comments, isCommittee }: { tic
                             <span className="text-sm font-medium">Attach Image</span>
                             <input
                                 type="file"
+                                name="image"
                                 accept="image/jpeg, image/png, image/jpg"
                                 className="hidden"
                                 onChange={handleImageChange}
@@ -185,6 +190,31 @@ export default function CommentThread({ ticketId, comments, isCommittee }: { tic
                     </button>
                 </div>
             </form>
+
+            {/* Lightbox / Modal */}
+            {mounted && selectedImage && createPortal(
+                <div
+                    className="fixed inset-0 z-[9999] bg-slate-950/95 flex items-center justify-center p-4 animate-in fade-in duration-200"
+                    onClick={() => setSelectedImage(null)}
+                >
+                    <button
+                        className="absolute top-6 right-6 text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-700 rounded-full p-2 transition-colors z-[10000]"
+                        onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
+                    >
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+
+                    <img
+                        src={selectedImage}
+                        alt="Enlarged Attachment"
+                        className="max-w-[95vw] max-h-[90vh] object-contain rounded-xl shadow-2xl pointer-events-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>,
+                document.body
+            )}
         </div>
     );
 }
