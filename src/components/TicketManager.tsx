@@ -40,6 +40,10 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
     const [showStatusModal, setShowStatusModal] = useState(false);
     const [statusComment, setStatusComment] = useState("");
 
+    // Category Change State
+    const [showCategoryModal, setShowCategoryModal] = useState(false);
+    const [categoryComment, setCategoryComment] = useState("");
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'OPEN': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
@@ -121,10 +125,13 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
         }
     };
 
-    const handleCategoryUpdate = async () => {
+    const handleCategorySubmit = async () => {
+        if (!categoryComment.trim()) return;
         setLoading(true);
         try {
-            await updateTicketCategory(ticket.id, selectedCategory);
+            await updateTicketCategory(ticket.id, selectedCategory, categoryComment);
+            setShowCategoryModal(false);
+            setCategoryComment("");
         } catch (err) {
             console.error(err);
         } finally {
@@ -342,7 +349,7 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
                                 </select>
                                 {selectedCategory !== ticket.category && (
                                     <button
-                                        onClick={handleCategoryUpdate}
+                                        onClick={() => setShowCategoryModal(true)}
                                         disabled={loading}
                                         className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold transition-colors shadow-lg"
                                     >
@@ -430,6 +437,41 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
                             <button
                                 onClick={handleStatusSubmit}
                                 disabled={!statusComment.trim() || loading}
+                                className="px-4 py-2 text-sm font-medium text-slate-900 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors disabled:opacity-50"
+                            >
+                                Confirm Update
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Category Change Modal */}
+            {showCategoryModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+                        <h3 className="text-xl font-bold text-white mb-2">Update Category</h3>
+                        <p className="text-sm text-slate-400 mb-4">
+                            Please provide a comment explaining why you are re-categorizing this issue to <span className="font-bold text-blue-400">{selectedCategory}</span>.
+                        </p>
+
+                        <textarea
+                            className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 outline-none focus:border-blue-500 mb-4 min-h-[100px]"
+                            placeholder="Add your note here..."
+                            value={categoryComment}
+                            onChange={(e) => setCategoryComment(e.target.value)}
+                        />
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => { setShowCategoryModal(false); setCategoryComment(""); setSelectedCategory(ticket.category); }}
+                                className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCategorySubmit}
+                                disabled={!categoryComment.trim() || loading}
                                 className="px-4 py-2 text-sm font-medium text-slate-900 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors disabled:opacity-50"
                             >
                                 Confirm Update

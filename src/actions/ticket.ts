@@ -299,7 +299,7 @@ export async function updateTicketPriority(ticketId: string, priority: "LOW" | "
     return updatedTicket;
 }
 
-export async function updateTicketCategory(ticketId: string, category: string) {
+export async function updateTicketCategory(ticketId: string, category: string, comment: string) {
     const session = await auth();
     if (!session || session.user.role === "STUDENT") {
         throw new Error("Unauthorized");
@@ -318,7 +318,7 @@ export async function updateTicketCategory(ticketId: string, category: string) {
         }),
         prisma.comment.create({
             data: {
-                content: `SYSTEM: Category remapped from ${oldCategory} to ${category}.`,
+                content: `SYSTEM: Category remapped from ${oldCategory} to ${category}.\n\nAdmin Comment: ${comment}`,
                 ticketId,
                 authorId: session.user.id
             }
