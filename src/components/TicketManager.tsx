@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { updateTicketStatus, toggleTicketVisibility, assignTicket, escalateTicket, reopenTicket, updateTicketPriority, updateTicketCategory } from "@/actions/ticket";
 import FormattedDate from "./FormattedDate";
 
 export default function TicketManager({ ticket, isCommittee, currentUserRole, committeeMembers }: { ticket: any, isCommittee: boolean, currentUserRole: string, committeeMembers?: any[] }) {
+    const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [isPublic, setIsPublic] = useState(ticket.isPublic || false);
     const [mounted, setMounted] = useState(false);
@@ -73,6 +75,7 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
             console.error(err);
         } finally {
             setLoading(false);
+            router.refresh();
         }
     };
 
@@ -85,6 +88,7 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
             console.error(err);
         } finally {
             setLoading(false);
+            router.refresh();
         }
     };
 
@@ -96,6 +100,7 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
             console.error(err);
         } finally {
             setLoading(false);
+            router.refresh();
         }
     };
 
@@ -110,6 +115,7 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
             setIsPublic(!newValue); // revert on error
         } finally {
             setLoading(false);
+            router.refresh();
         }
     };
 
@@ -122,6 +128,7 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
             console.error(err);
         } finally {
             setLoading(false);
+            router.refresh();
         }
     };
 
@@ -136,6 +143,7 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
             console.error(err);
         } finally {
             setLoading(false);
+            router.refresh();
         }
     };
 
@@ -150,6 +158,7 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
             console.error(err);
         } finally {
             setLoading(false);
+            router.refresh();
         }
     };
 
@@ -164,6 +173,7 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
             console.error(err);
         } finally {
             setLoading(false);
+            router.refresh();
         }
     };
 
