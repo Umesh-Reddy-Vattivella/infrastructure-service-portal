@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { getTickets } from "@/actions/ticket";
+import { getTickets, getCommitteeMembers } from "@/actions/ticket";
 import { redirect } from "next/navigation";
 import StudentDashboard from "@/components/StudentDashboard";
 import CommitteeDashboard from "@/components/CommitteeDashboard";
@@ -13,6 +13,9 @@ export default async function DashboardPage() {
 
     const tickets = await getTickets();
 
+    const isCommittee = session.user.role !== "STUDENT";
+    const committeeMembers = isCommittee ? await getCommitteeMembers() : [];
+
     return (
         <div className="min-h-screen flex flex-col">
             <Navbar user={session.user} />
@@ -20,7 +23,7 @@ export default async function DashboardPage() {
                 {session.user.role === "STUDENT" ? (
                     <StudentDashboard tickets={tickets} />
                 ) : (
-                    <CommitteeDashboard tickets={tickets} />
+                    <CommitteeDashboard tickets={tickets} currentUser={session.user} committeeMembers={committeeMembers} />
                 )}
             </main>
         </div>

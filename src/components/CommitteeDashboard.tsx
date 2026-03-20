@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import CreateTicketForm from "@/components/CreateTicketForm";
 import Link from "next/link";
 
-export default function CommitteeDashboard({ tickets }: { tickets: any[] }) {
+export default function CommitteeDashboard({ tickets, currentUser, committeeMembers }: { tickets: any[], currentUser: any, committeeMembers: any[] }) {
     const [isCreating, setIsCreating] = useState(false);
     const [statusFilter, setStatusFilter] = useState("ALL");
+    const [assigneeFilter, setAssigneeFilter] = useState("ALL");
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -32,6 +33,7 @@ export default function CommitteeDashboard({ tickets }: { tickets: any[] }) {
     };
 
     // Metrics
+    const assignedToMeCount = tickets.filter(t => t.assigneeId === currentUser.id && t.status !== 'CLOSED' && t.status !== 'RESOLVED').length;
     const openCount = tickets.filter(t => t.status === 'OPEN').length;
     const inProgressCount = tickets.filter(t => t.status === 'IN_PROGRESS').length;
     const escalatedCount = tickets.filter(t => t.status === 'ESCALATED').length;
@@ -39,7 +41,11 @@ export default function CommitteeDashboard({ tickets }: { tickets: any[] }) {
 
     return (
         <div className="space-y-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                <div className="glass-panel p-6 rounded-xl border border-slate-700/50 flex flex-col justify-between items-start border-b-4 border-b-emerald-500">
+                    <div className="text-emerald-400 font-medium text-sm mb-2">Assigned to Me</div>
+                    <div className="text-4xl font-bold text-white">{assignedToMeCount}</div>
+                </div>
                 <div className="glass-panel p-6 rounded-xl border border-slate-700/50 flex flex-col justify-between items-start">
                     <div className="text-slate-400 font-medium text-sm mb-2">Open Issues</div>
                     <div className="text-4xl font-bold text-white">{openCount}</div>
@@ -81,14 +87,26 @@ export default function CommitteeDashboard({ tickets }: { tickets: any[] }) {
             )}
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/20 p-4 rounded-xl border border-slate-700/50 -mt-2 mb-2">
-                <div className="flex items-center gap-3 w-full sm:w-auto ml-auto">
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto ml-auto">
                     <label className="text-sm font-medium text-slate-400">Filter View:</label>
+                    <select
+                        value={assigneeFilter}
+                        onChange={(e) => setAssigneeFilter(e.target.value)}
+                        className="bg-slate-900 border border-slate-700 rounded-lg text-sm px-3 py-1.5 outline-none focus:border-blue-500 text-slate-200 flex-1 sm:w-auto font-bold tracking-wider uppercase"
+                    >
+                        <option value="ALL">All Assignees</option>
+                        <option value={currentUser.id}>Assigned to Me</option>
+                        {committeeMembers.filter(m => m.id !== currentUser.id).map(m => (
+                            <option key={m.id} value={m.id}>{m.name} ({m.role})</option>
+                        ))}
+                    </select>
+
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
                         className="bg-slate-900 border border-slate-700 rounded-lg text-sm px-3 py-1.5 outline-none focus:border-blue-500 text-slate-200 flex-1 sm:w-auto font-bold tracking-wider uppercase"
                     >
-                        <option value="ALL">All Issues</option>
+                        <option value="ALL">All Statuses</option>
                         <option value="OPEN">Open</option>
                         <option value="ASSIGNED">Assigned</option>
                         <option value="IN_PROGRESS">In Progress</option>
@@ -100,7 +118,11 @@ export default function CommitteeDashboard({ tickets }: { tickets: any[] }) {
             </div>
 
             <div className="grid grid-cols-1 gap-4">
-                {tickets.filter(t => statusFilter === "ALL" || t.status === statusFilter).map((ticket) => (
+                {tickets.filter(t => {
+                    const matchesStatus = statusFilter === "ALL" || t.status === statusFilter;
+                    const matchesAssignee = assigneeFilter === "ALL" || t.assigneeId === assigneeFilter;
+                    return matchesStatus && matchesAssignee;
+                }).map((ticket) => (
                     <Link href={`/ticket/${ticket.id}`} key={ticket.id} className="block">
                         <div className="glass-panel p-5 rounded-xl hover:bg-slate-800/80 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group cursor-pointer border-l-4 border-l-slate-600 hover:border-l-blue-500">
                             <div className="flex-1">
