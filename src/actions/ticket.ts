@@ -299,6 +299,37 @@ export async function updateTicketPriority(ticketId: string, priority: "LOW" | "
     return updatedTicket;
 }
 
+export async function updateTicketCategory(ticketId: string, category: string) {
+    const session = await auth();
+    if (!session || session.user.role === "STUDENT") {
+        throw new Error("Unauthorized");
+    }
+
+    const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
+    if (!ticket) throw new Error("Ticket not found");
+
+    const oldCategory = ticket.category;
+    if (oldCategory === category) return ticket;
+
+    const [updatedTicket, systemComment] = await prisma.$transaction([
+        prisma.ticket.update({
+            where: { id: ticketId },
+            data: { category }
+        }),
+        prisma.comment.create({
+            data: {
+                content: `SYSTEM: Category remapped from ${oldCategory} to ${category}.`,
+                ticketId,
+                authorId: session.user.id
+            }
+        })
+    ]);
+
+    revalidatePath(`/ticket/${ticketId}`);
+    revalidatePath("/dashboard");
+    return updatedTicket;
+}
+
 export async function verifyTicketResolution(ticketId: string, isResolved: boolean) {
     const session = await auth();
     if (!session?.user?.id) throw new Error("Unauthorized");

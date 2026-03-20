@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { updateTicketStatus, toggleTicketVisibility, assignTicket, escalateTicket, reopenTicket, updateTicketPriority } from "@/actions/ticket";
+import { updateTicketStatus, toggleTicketVisibility, assignTicket, escalateTicket, reopenTicket, updateTicketPriority, updateTicketCategory } from "@/actions/ticket";
 import FormattedDate from "./FormattedDate";
 
 export default function TicketManager({ ticket, isCommittee, currentUserRole, committeeMembers }: { ticket: any, isCommittee: boolean, currentUserRole: string, committeeMembers?: any[] }) {
@@ -12,6 +12,7 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
     const [selectedStatus, setSelectedStatus] = useState(ticket.status);
     const [selectedPriority, setSelectedPriority] = useState(ticket.priority);
     const [selectedAssignee, setSelectedAssignee] = useState(ticket.assigneeId || "");
+    const [selectedCategory, setSelectedCategory] = useState(ticket.category);
 
     useEffect(() => {
         setMounted(true);
@@ -21,6 +22,7 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
         setSelectedStatus(ticket.status);
         setSelectedPriority(ticket.priority);
         setSelectedAssignee(ticket.assigneeId || "");
+        setSelectedCategory(ticket.category);
     }, [ticket]);
 
     // Escalation State
@@ -112,6 +114,17 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
         setLoading(true);
         try {
             await assignTicket(ticket.id, selectedAssignee);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCategoryUpdate = async () => {
+        setLoading(true);
+        try {
+            await updateTicketCategory(ticket.id, selectedCategory);
         } catch (err) {
             console.error(err);
         } finally {
@@ -305,14 +318,43 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
                         </div>
                     )}
 
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center mb-2">
                         <span className="text-slate-400 text-sm">Location</span>
                         <span className="text-slate-200 text-sm font-medium">{ticket.location}</span>
                     </div>
-                    <div className="flex justify-between items-center">
+
+                    <div className="flex justify-between items-center pb-2 border-b border-slate-700/50 mb-2">
                         <span className="text-slate-400 text-sm">Category</span>
-                        <span className="text-slate-200 text-sm font-medium">{ticket.category}</span>
+                        {isCommittee ? (
+                            <div className="flex items-center gap-2">
+                                <select
+                                    className="bg-slate-800 border border-slate-700 rounded-lg text-xs px-2 py-1 outline-none focus:border-blue-500 max-w-[150px] font-bold tracking-wider uppercase"
+                                    value={selectedCategory}
+                                    onChange={(e) => setSelectedCategory(e.target.value)}
+                                    disabled={loading || ticket.status === 'CLOSED'}
+                                >
+                                    <option value="WIFI">WiFi & Network</option>
+                                    <option value="PLUMBING">Plumbing</option>
+                                    <option value="ELECTRICAL">Electrical</option>
+                                    <option value="HOT_WATER">Hot Water</option>
+                                    <option value="HVAC">AC & Heating (HVAC)</option>
+                                    <option value="OTHER">Other</option>
+                                </select>
+                                {selectedCategory !== ticket.category && (
+                                    <button
+                                        onClick={handleCategoryUpdate}
+                                        disabled={loading}
+                                        className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold transition-colors shadow-lg"
+                                    >
+                                        OK
+                                    </button>
+                                )}
+                            </div>
+                        ) : (
+                            <span className="text-slate-200 text-sm font-medium">{ticket.category}</span>
+                        )}
                     </div>
+
                     {ticket.resolvedAt && (
                         <div className="flex flex-col gap-2 border-t border-slate-700/50 pt-3 mt-3 text-green-400">
                             <div className="flex justify-between items-center">
