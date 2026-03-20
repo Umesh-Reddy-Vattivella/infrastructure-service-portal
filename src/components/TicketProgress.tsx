@@ -8,15 +8,13 @@ export default function TicketProgress({ status, createdAt, slaDeadline, resolve
         { id: "ASSIGNED", label: "Assigned" },
         { id: "IN_PROGRESS", label: "In Progress" },
         { id: "RESOLVED", label: "Resolved" },
+        { id: "CLOSED", label: "Closed" },
     ];
 
-    // If it's escalated or closed, dynamically inject those steps into the visual flow
+    // If it's escalated, dynamically inject that step into the visual flow
     let steps = [...defaultSteps];
     if (status === "ESCALATED") {
         steps.splice(3, 0, { id: "ESCALATED", label: "Escalated" });
-    }
-    if (status === "CLOSED") {
-        steps.push({ id: "CLOSED", label: "Closed" });
     }
 
     const currentIndex = steps.findIndex(s => s.id === status);
