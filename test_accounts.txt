@@ -1,0 +1,18 @@
+--- InstiSolve Test Accounts ---
+
+[SAO - admin@123]
+sao@institute.edu
+
+[Secretary - admin@123]
+name_secretary_infracom@institute.edu
+
+[Committee - admin@123]
+name_infracom_1@institute.edu
+name_infracom_2@institute.edu
+name_infracom_3@institute.edu
+name_infracom_4@institute.edu
+
+[Students - user@123]
+student_1@institute.edu
+student_2@institute.edu
+... up to student_8@institute.edu

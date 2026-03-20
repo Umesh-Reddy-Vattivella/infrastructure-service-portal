@@ -76,6 +76,8 @@ export default function RegisterForm() {
                 >
                     <option value="STUDENT">Student</option>
                     <option value="COMMITTEE">Committee Member</option>
+                    <option value="SECRETARY">Secretary</option>
+                    <option value="SAO">SAO</option>
                 </select>
             </div>
 

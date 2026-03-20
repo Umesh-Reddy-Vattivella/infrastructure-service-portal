@@ -31,7 +31,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
         );
     }
 
-    const isCommittee = session.user.role === "COMMITTEE" || session.user.role === "ADMIN";
+    const isCommittee = session.user.role !== "STUDENT";
     const committeeMembers = isCommittee ? await getCommitteeMembers() : [];
 
     return (
@@ -101,6 +101,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
                         <TicketManager
                             ticket={ticket}
                             isCommittee={isCommittee}
+                            currentUserRole={session.user.role}
                             committeeMembers={committeeMembers}
                         />
 

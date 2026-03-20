@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { updateTicketStatus, toggleTicketVisibility, assignTicket, escalateTicket, reopenTicket, updateTicketPriority } from "@/actions/ticket";
 import FormattedDate from "./FormattedDate";
 
-export default function TicketManager({ ticket, isCommittee, committeeMembers }: { ticket: any, isCommittee: boolean, committeeMembers?: any[] }) {
+export default function TicketManager({ ticket, isCommittee, currentUserRole, committeeMembers }: { ticket: any, isCommittee: boolean, currentUserRole: string, committeeMembers?: any[] }) {
     const [loading, setLoading] = useState(false);
     const [isPublic, setIsPublic] = useState(ticket.isPublic || false);
     const [mounted, setMounted] = useState(false);
@@ -118,6 +118,7 @@ export default function TicketManager({ ticket, isCommittee, committeeMembers }:
         try {
             await escalateTicket(ticket.id, escalateReason);
             setShowEscalateModal(false);
+            setEscalateReason("");
         } catch (err) {
             console.error(err);
         } finally {
@@ -181,6 +182,7 @@ export default function TicketManager({ ticket, isCommittee, committeeMembers }:
                                 <option value="IN_PROGRESS" className="bg-slate-800 text-white">IN PROGRESS</option>
                                 <option value="ESCALATED" className="bg-slate-800 text-white">ESCALATED</option>
                                 <option value="RESOLVED" className="bg-slate-800 text-white">RESOLVED</option>
+                                <option value="CLOSED" className="bg-slate-800 text-slate-500">CLOSED</option>
                             </select>
                             {selectedStatus !== ticket.status && (
                                 <button
@@ -321,14 +323,24 @@ export default function TicketManager({ ticket, isCommittee, committeeMembers }:
                 </div>
             </div>
 
-            {isCommittee && ticket.status !== 'ESCALATED' && ticket.status !== 'CLOSED' && ticket.status !== 'RESOLVED' && (
-                <div className="mt-6 pt-4 border-t border-slate-700/50 flex justify-end">
-                    <button
-                        onClick={() => setShowEscalateModal(true)}
-                        className="px-4 py-2 text-sm font-bold tracking-wider uppercase text-red-500 hover:bg-red-500/10 border border-red-500/20 rounded-lg transition-colors"
-                    >
-                        Escalate Ticket
-                    </button>
+            {isCommittee && ticket.status !== 'CLOSED' && ticket.status !== 'RESOLVED' && (
+                <div className="mt-6 pt-4 border-t border-slate-700/50 flex justify-end gap-3">
+                    {currentUserRole === 'COMMITTEE' && ticket.status !== 'ESCALATED' && (
+                        <button
+                            onClick={() => setShowEscalateModal(true)}
+                            className="px-4 py-2 text-xs font-bold tracking-wider uppercase text-purple-400 hover:bg-purple-500/10 border border-purple-500/20 rounded-lg transition-colors"
+                        >
+                            Escalate to Secretary
+                        </button>
+                    )}
+                    {currentUserRole === 'SECRETARY' && (
+                        <button
+                            onClick={() => setShowEscalateModal(true)}
+                            className="px-4 py-2 text-xs font-bold tracking-wider uppercase text-red-500 hover:bg-red-500/10 border border-red-500/20 rounded-lg transition-colors"
+                        >
+                            Escalate to SAO
+                        </button>
+                    )}
                 </div>
             )}
 

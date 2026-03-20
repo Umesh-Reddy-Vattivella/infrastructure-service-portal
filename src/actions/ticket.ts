@@ -145,7 +145,7 @@ export async function getTickets() {
     // Lazy evaluate closures
     await autoCloseResolvedTickets();
 
-    if (session.user.role === "COMMITTEE" || session.user.role === "ADMIN") {
+    if (session.user.role !== "STUDENT") {
         return prisma.ticket.findMany({
             orderBy: { createdAt: "desc" },
             include: { author: { select: { name: true, email: true } } },
@@ -364,7 +364,7 @@ export async function getCommitteeMembers() {
     }
 
     return prisma.user.findMany({
-        where: { role: { in: ["COMMITTEE", "ADMIN"] } },
+        where: { role: { not: "STUDENT" } },
         select: { id: true, name: true, email: true, role: true }
     });
 }
