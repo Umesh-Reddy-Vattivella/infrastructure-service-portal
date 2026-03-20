@@ -34,6 +34,10 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
     // Resolution State
     const [responseHours, setResponseHours] = useState<number>(48); // default to 48 hours
 
+    // Status Change State
+    const [showStatusModal, setShowStatusModal] = useState(false);
+    const [statusComment, setStatusComment] = useState("");
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'OPEN': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
@@ -52,10 +56,13 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
         }
     };
 
-    const handleStatusUpdate = async () => {
+    const handleStatusSubmit = async () => {
+        if (!statusComment.trim()) return;
         setLoading(true);
         try {
-            await updateTicketStatus(ticket.id, selectedStatus, selectedStatus === "RESOLVED" ? responseHours : undefined);
+            await updateTicketStatus(ticket.id, selectedStatus, statusComment, selectedStatus === "RESOLVED" ? responseHours : undefined);
+            setShowStatusModal(false);
+            setStatusComment("");
         } catch (err) {
             console.error(err);
         } finally {
@@ -67,7 +74,7 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
     const handleResponseHoursUpdate = async () => {
         setLoading(true);
         try {
-            await updateTicketStatus(ticket.id, "RESOLVED", responseHours);
+            await updateTicketStatus(ticket.id, "RESOLVED", "Admin updated the auto-close deadline.", responseHours);
         } catch (err) {
             console.error(err);
         } finally {
@@ -186,7 +193,7 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
                             </select>
                             {selectedStatus !== ticket.status && (
                                 <button
-                                    onClick={handleStatusUpdate}
+                                    onClick={() => setShowStatusModal(true)}
                                     disabled={loading}
                                     className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold transition-colors shadow-lg"
                                 >
@@ -352,6 +359,41 @@ export default function TicketManager({ ticket, isCommittee, currentUserRole, co
                     >
                         Reopen Ticket
                     </button>
+                </div>
+            )}
+
+            {/* Status Change Modal */}
+            {showStatusModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+                        <h3 className="text-xl font-bold text-white mb-2">Update Ticket Status</h3>
+                        <p className="text-sm text-slate-400 mb-4">
+                            Please provide a comment explaining why you are changing the status to <span className="font-bold text-blue-400">{selectedStatus}</span>. This comment will be logged in the activity thread.
+                        </p>
+
+                        <textarea
+                            className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 outline-none focus:border-blue-500 mb-4 min-h-[100px]"
+                            placeholder="Add your comment here..."
+                            value={statusComment}
+                            onChange={(e) => setStatusComment(e.target.value)}
+                        />
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => { setShowStatusModal(false); setStatusComment(""); setSelectedStatus(ticket.status); }}
+                                className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleStatusSubmit}
+                                disabled={!statusComment.trim() || loading}
+                                className="px-4 py-2 text-sm font-medium text-slate-900 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors disabled:opacity-50"
+                            >
+                                Confirm Update
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 

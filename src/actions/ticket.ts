@@ -210,7 +210,7 @@ export async function getTicketById(id: string) {
     return ticket;
 }
 
-export async function updateTicketStatus(ticketId: string, status: string, responseHours?: number) {
+export async function updateTicketStatus(ticketId: string, status: string, comment: string, responseHours?: number) {
     const session = await auth();
     if (!session || session.user.role === "STUDENT") {
         throw new Error("Unauthorized");
@@ -241,7 +241,7 @@ export async function updateTicketStatus(ticketId: string, status: string, respo
         }),
         prisma.comment.create({
             data: {
-                content: `SYSTEM: Status updated from ${oldStatus} to ${status}.`,
+                content: `SYSTEM: Status updated from ${oldStatus} to ${status}.\n\nAdmin Comment: ${comment}`,
                 ticketId,
                 authorId: session.user.id
             }
